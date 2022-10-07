@@ -16,7 +16,7 @@ def keyboard_to_dict(keyboard:str):
             k[":"] = position[index]
     return k
 #keys = keyboard_to_dict("qwertasdfg<yxcvbzuiopèhjkléànm,.-")
-keys = keyboard_to_dict("bépoèauie,êàyx.kwvdljzctsrnm?qghf")
+#keys = keyboard_to_dict("bépoèauie,êàyx.kwvdljzctsrnm?qghf")
 #keys = keyboard_to_dict("abcdefghijklmnopqrstuvwxyz,.-éèà?")
 finger_pos = [2,6,9,12,21,24,27,30]
 """
@@ -68,6 +68,8 @@ with open("test.txt","r",encoding="utf-8") as file:
     file.close()
 dist_parcourue = 0
 print(f"text is {text}")
+not_found = []
+not_found_occurences = {}
 for char in text:
     print(f"Scanning for char {char} --->",end="   ")
     if char.isupper():
@@ -84,7 +86,16 @@ for char in text:
         else:
             print(f"Same character : {previous_pos} --> skipped")
     else:
+        if char not in not_found:
+            not_found.append(char)
+            not_found_occurences[char] = 1
+        else:
+            not_found_occurences[char] += 1
         print("Character not found on the keyboard")
 print(f"Total distance = {dist_parcourue}")
+print("I didn't find the characters : ")
+for i in not_found:
+    print(i+f" that appeared {not_found_occurences[i]} times,")
+
 
 
