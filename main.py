@@ -1,9 +1,11 @@
 import math
+import random
+
 position = [1,5,8,11,14,2,6,9,12,15,3,4,7,10,13,16,17,20,23,26,29,32,18,21,24,27,30,33,19,22,25,28,31]
-keys = {"q":1,"w":5,"e":8, "r":11,"t":14,"z":17,"u":20,"i":23,"o":26,"p":29,"è":32,"a":2,"s":6,"d":9,
-        "f":12,"g":15,"h":18, "j":21,"k":24,"l":27,"é":30,"à":33,"<":3,"y":4,"x":7,"c":10,"v":13,"b":16,
-        "n":19,"m":22, ",":25,".":28,"-":31,
-        ">":3,";":25,":":28}
+#keys = {"q":1,"w":5,"e":8, "r":11,"t":14,"z":17,"u":20,"i":23,"o":26,"p":29,"è":32,"a":2,"s":6,"d":9,
+        #"f":12,"g":15,"h":18, "j":21,"k":24,"l":27,"é":30,"à":33,"<":3,"y":4,"x":7,"c":10,"v":13,"b":16,
+        #"n":19,"m":22, ",":25,".":28,"-":31,
+        #">":3,";":25,":":28}
 def keyboard_to_dict(keyboard:str):
     k = {}
     for index,char in enumerate(keyboard):
@@ -15,6 +17,20 @@ def keyboard_to_dict(keyboard:str):
         elif char == ".":
             k[":"] = position[index]
     return k
+def generate_keyboard():
+    keyboard_keys = "qwertasdfg<yxcvbzuiopèhjkléànm,.-"
+    length = len(keyboard_keys)
+    keyboard_keys_list = []
+    new_keyboard = ""
+    for char in keyboard_keys:
+        keyboard_keys_list.append(char)
+    for iteration in range(length):
+        choice = random.randint(0,length-1-iteration)
+        new_keyboard += keyboard_keys_list[choice]
+        del keyboard_keys_list[choice]
+    #print(f"New keyboard generated : {new_keyboard}")
+    return new_keyboard
+
 #keys = keyboard_to_dict("qwertasdfg<yxcvbzuiopèhjkléànm,.-")
 #keys = keyboard_to_dict("bépoèauie,êàyx.kwvdljzctsrnm?qghf")
 #keys = keyboard_to_dict("abcdefghijklmnopqrstuvwxyz,.-éèà?")
@@ -66,36 +82,72 @@ distances_between_points[frozenset([32,33])] = up_mid
 with open("test.txt","r",encoding="utf-8") as file:
     text = file.read()
     file.close()
-dist_parcourue = 0
-print(f"text is {text}")
-not_found = []
-not_found_occurences = {}
-for char in text:
-    print(f"Scanning for char {char} --->",end="   ")
-    if char.isupper():
-        char = char.lower()
-    key = keys.get(char)
-    if key:
-        finger_used = index_to_finger[key]
-        previous_pos = finger_pos[finger_used]
-        if previous_pos != key:
-            present_dist = distances_between_points[frozenset([previous_pos,key])]
-            print(f"Going from {previous_pos} to {key} : distance is {present_dist}")
-            dist_parcourue += present_dist
-            finger_pos[finger_used] = key
-        else:
-            print(f"Same character : {previous_pos} --> skipped")
-    else:
-        if char not in not_found:
-            not_found.append(char)
-            not_found_occurences[char] = 1
-        else:
-            not_found_occurences[char] += 1
-        print("Character not found on the keyboard")
-print(f"Total distance = {dist_parcourue}")
-print("I didn't find the characters : ")
-for i in not_found:
-    print(i+f" that appeared {not_found_occurences[i]} times,")
 
+def calculate_fitness_score(keys):
+    keys = keys
+    dist_parcourue = 0
+    not_found = []
+    not_found_occurences = {}
+    for char in text:
+        #print(f"Scanning for char {char} --->",end="   ")
+        if char.isupper():
+            char = char.lower()
+        key = keys.get(char)
+        if key:
+            finger_used = index_to_finger[key]
+            previous_pos = finger_pos[finger_used]
+            if previous_pos != key:
+                present_dist = distances_between_points[frozenset([previous_pos,key])]
+                #print(f"Going from {previous_pos} to {key} : distance is {present_dist}")
+                dist_parcourue += present_dist
+                finger_pos[finger_used] = key
+            else:
+                #print(f"Same character : {previous_pos} --> skipped")
+                pass
+        else:
+            if char not in not_found:
+                not_found.append(char)
+                not_found_occurences[char] = 1
+            else:
+                not_found_occurences[char] += 1
+            #print("Character not found on the keyboard")
+    print(f"Total distance = {dist_parcourue}")
+    #print("I didn't find the characters : ")
+    for i in not_found:
+        #print(i+f" that appeared {not_found_occurences[i]} times,")
+        pass
+    return dist_parcourue
 
+def new_keys_from_2_keys(keys_1:str,keys_2:str)->str:
+    all_keys = "qwertasdfg<yxcvbzuiopèhjkléànm,.-"
+    print(f"Transforming 2 keyboards into 1 : \n {keys_1}\n{keys_2}")
+    new_keys = keys_1[:16]
+
+    for key in new_keys:
+        all_keys = all_keys.replace(key, "")
+    keys_2_used = keys_2[16:]
+    empty_space = []
+    for index,key in enumerate(keys_2_used):
+        if key in new_keys:
+            empty_space.append(16+index)
+            new_keys += "0"
+        else:
+            new_keys += key
+            all_keys = all_keys.replace(key,"")
+    nb_missing_keys = len(all_keys)
+    for index,missing_key in enumerate(all_keys):
+        place = random.randint(0,nb_missing_keys-1-index)
+        place_in_string = empty_space[place]
+        del empty_space[place]
+        print(f"missing char {missing_key}")
+        new_keys = new_keys[:place_in_string]+ missing_key + new_keys[place_in_string+1:]
+        all_keys = all_keys.replace(missing_key,"")
+    return new_keys
+
+print(new_keys_from_2_keys(generate_keyboard(),generate_keyboard()))
+for i in range(0):
+    new_keyboard = generate_keyboard()
+    print("New keyboard generated  -->  " + new_keyboard)
+    keys = keyboard_to_dict(new_keyboard)
+    fitness = calculate_fitness_score(keys)
 
