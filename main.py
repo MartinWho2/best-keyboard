@@ -31,7 +31,6 @@ def generate_keyboard():
     #print(f"New keyboard generated : {new_keyboard}")
     return new_keyboard
 
-#keys = keyboard_to_dict("qwertasdfg<yxcvbzuiopèhjkléànm,.-")
 #keys = keyboard_to_dict("bépoèauie,êàyx.kwvdljzctsrnm?qghf")
 #keys = keyboard_to_dict("abcdefghijklmnopqrstuvwxyz,.-éèà?")
 finger_pos = [2,6,9,12,21,24,27,30]
@@ -79,7 +78,7 @@ for a in {11,17}:
 for a in {13,19,31}:
     distances_between_points[frozenset([a,a+1])] = math.sqrt(2**2+0.25**2)
 distances_between_points[frozenset([32,33])] = up_mid
-with open("test.txt","r",encoding="utf-8") as file:
+with open("Germinal_Texte_entier.txt","r",encoding="utf-8") as file:
     text = file.read()
     file.close()
 
@@ -92,7 +91,11 @@ def calculate_fitness_score(keys):
         #print(f"Scanning for char {char} --->",end="   ")
         if char.isupper():
             char = char.lower()
-        key = keys.get(char)
+        try:
+            key = keys.get(char)
+        except:
+            print(keys)
+            raise Exception
         if key:
             finger_used = index_to_finger[key]
             previous_pos = finger_pos[finger_used]
@@ -111,16 +114,17 @@ def calculate_fitness_score(keys):
             else:
                 not_found_occurences[char] += 1
             #print("Character not found on the keyboard")
-    print(f"Total distance = {dist_parcourue}")
+    #print(f"Total distance = {dist_parcourue}")
     #print("I didn't find the characters : ")
     for i in not_found:
         #print(i+f" that appeared {not_found_occurences[i]} times,")
         pass
     return dist_parcourue
-
+#keys = keyboard_to_dict("qwertasdfg<yxcvbzuiopèhjkléànm,.-")
+#print(calculate_fitness_score(keys))
 def new_keys_from_2_keys(keys_1:str,keys_2:str)->str:
     all_keys = "qwertasdfg<yxcvbzuiopèhjkléànm,.-"
-    print(f"Transforming 2 keyboards into 1 : \n {keys_1}\n{keys_2}")
+    #print(f"Transforming 2 keyboards into 1 : \n {keys_1}\n{keys_2}")
     new_keys = keys_1[:16]
 
     for key in new_keys:
@@ -139,15 +143,45 @@ def new_keys_from_2_keys(keys_1:str,keys_2:str)->str:
         place = random.randint(0,nb_missing_keys-1-index)
         place_in_string = empty_space[place]
         del empty_space[place]
-        print(f"missing char {missing_key}")
         new_keys = new_keys[:place_in_string]+ missing_key + new_keys[place_in_string+1:]
         all_keys = all_keys.replace(missing_key,"")
     return new_keys
 
 print(new_keys_from_2_keys(generate_keyboard(),generate_keyboard()))
-for i in range(0):
-    new_keyboard = generate_keyboard()
-    print("New keyboard generated  -->  " + new_keyboard)
-    keys = keyboard_to_dict(new_keyboard)
-    fitness = calculate_fitness_score(keys)
+gens = []
+
+best_keys_1 = {}
+best_fitness =[]
+for i in range(100):
+    keys = generate_keyboard()
+    fitness = calculate_fitness_score(keyboard_to_dict(keys))
+    best_keys_1[fitness] = keys
+    best_fitness.append(fitness)
+best_fitness.sort()
+print(f"gen 1 best keyboard : {best_fitness[0]}")
+
+new_gen = []
+for index in range(50):
+    new_gen.append(best_keys_1[best_fitness[index]])
+
+gens.append(best_keys_1)
+for i in range(30):
+    gen_now = []
+    best_keys = {}
+    best_fitness = []
+    for previous in new_gen:
+        for j in range(2):
+            new_key = new_keys_from_2_keys(previous,new_gen[random.randint(0,49)])
+            fitness = calculate_fitness_score(keyboard_to_dict(new_key))
+            best_keys[fitness] = new_key
+            best_fitness.append(fitness)
+    best_fitness.sort()
+    print(f"gen {i+2} best keyboard : {best_fitness[0]}")
+    new_gen = []
+    for index in range(50):
+        new_gen.append(best_keys[best_fitness[index]])
+
+    #print("New keyboard generated  -->  " + new_keyboard)
+    #keys = keyboard_to_dict(new_keyboard)
+    #fitness = calculate_fitness_score(keys)
 
