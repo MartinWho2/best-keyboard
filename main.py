@@ -88,9 +88,16 @@ for a in {13,19,31}:
     distances_between_points[frozenset([a,a+1])] = math.sqrt(2**2+0.25**2)
 distances_between_points[frozenset([32,33])] = up_mid
 with open("test.txt","r",encoding="utf-8") as file:
-    text = file.read()
+    text2 = file.read()
     file.close()
-
+text = ""
+ks = keyboard_to_dict(generate_keyboard())
+for char in text2:
+    if char.isupper():
+        char = char.lower()
+    if ks.get(char):
+        text += char
+print(text)
 def calculate_fitness_score(keys,keys_missed = False):
     finger_position = [2,6,9,12,21,24,27,30]
     keys = keys
@@ -99,13 +106,9 @@ def calculate_fitness_score(keys,keys_missed = False):
     not_found_occurences = {}
     for char in text:
         #print(f"Scanning for char {char} --->",end="   ")
-        if char.isupper():
-            char = char.lower()
-        try:
-            key = keys.get(char)
-        except:
-            print(keys)
-            raise Exception
+        #if char.isupper():
+        #    char = char.lower()
+        key = keys.get(char)
         if key:
             finger_used = index_to_finger[key]
             previous_pos = finger_position[finger_used]
@@ -124,6 +127,8 @@ def calculate_fitness_score(keys,keys_missed = False):
             else:
                 not_found_occurences[char] += 1
             #print("Character not found on the keyboard")
+        else:
+            raise Exception
     #print(f"Total distance = {dist_parcourue}")
     #print("I didn't find the characters : ")
     if keys_missed:
@@ -179,6 +184,20 @@ for i in range(population):
     best_keys_1[fitness] = keys
     best_fitness.append(fitness)
     print("|",end="")
+for i in range(0):
+    if i%5==1:
+        k = ".jévqlsurmtdk-bwhpfày,cnaeoixzè<g"
+    elif i%5 ==2:
+        k = "réfzhcuavslw-yjà<qèpb,mteniodgkx."
+    elif i%5 ==3:
+        k = "é-èf,ueaiomjyà.<kghcqvlnsrtdpxzwb"
+    elif i%5 == 4:
+        k = "m.nhcueloipxyzgàjb-qfétdrsa,vwèk<"
+    else:
+        k = ",bskyirhclu.qwdgvém-àjnpteaox<èzf"
+    fit = calculate_fitness_score(keyboard_to_dict(k))
+    best_keys_1[fit] = k
+    best_fitness[i*10] = fit
 print()
 best_fitness.sort()
 print(f"gen 1 best keyboard : {best_fitness[0]}, The keyboard is "+best_keys_1[best_fitness[0]])
@@ -203,7 +222,7 @@ for i in range(n_generations):
     for previous in new_gen:
         for j in range(round(1/percentage_of_survivors)):
             new_key = new_keys_from_2_keys(previous,new_gen[random.randint(0,survivors-1)])
-            if random.randint(1,2) == 1:
+            if random.randint(1,3) == 1:
                 new_key = swap_2_keys(new_key)
             fitness = calculate_fitness_score(keyboard_to_dict(new_key))
             best_keys[fitness] = new_key
@@ -215,14 +234,14 @@ for i in range(n_generations):
     new_gen = []
     for index in range(survivors):
         new_gen.append(best_keys[best_fitness[index]])
-    fig, ax = plt.subplots()
-    ax.plot(range(0,len(best_fitness)),best_fitness)
+    #fig, ax = plt.subplots()
+    #ax.plot(range(0,len(best_fitness)),best_fitness)
 
-    ax.set(xlabel='individual keyboards ', ylabel='Fitness score (m)',
-               title=f'Keyboard fitness repartition at {i+2} generation')
-    ax.grid()
+#    ax.set(xlabel='individual keyboards ', ylabel='Fitness score (m)',
+#               title=f'Keyboard fitness repartition at {i+2} generation')
+#   ax.grid()
     #fig.savefig(f"gen{i+2}-swap0.2.png")
-    plt.close(fig)
+#    plt.close(fig)
     #print("New keyboard generated  -->  " + new_keyboard)
     #keys = keyboard_to_dict(new_keyboard)
     #fitness = calculate_fitness_score(keys)
@@ -230,6 +249,6 @@ fig, ax = plt.subplots()
 ax.plot(range(0,len(best_fitness_per_gen)),best_fitness_per_gen)
 
 ax.set(xlabel='Generation (n)', ylabel='Best fitness score (m)',
-               title=f'Keyboard fitness repartition at every generation with 50% swap')
+               title=f'Keyboard fitness repartition at every generation with 33% swap')
 ax.grid()
-fig.savefig("swap-0.5-50_gens.png")
+fig.savefig("swap-0.3-mid-big.png")
